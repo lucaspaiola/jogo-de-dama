@@ -1,6 +1,6 @@
 /**
- * @author Lucas Victorio Paiola
- */
+* @author Lucas Victorio Paiola
+*/
 
 public class Peca {
    private boolean emJogo; //Identifica se uma peça está no tabuleiro.
@@ -10,7 +10,7 @@ public class Peca {
    /* Construtor da classe */
    public Peca(String cor) throws Exception{
       if(cor != "Branco" && cor != "Preto"){
-            throw new Exception("Cor da peça inválida");
+         throw new Exception("Cor da peça inválida");
       }
       else this.cor = cor;
       this.emJogo = true;
@@ -19,12 +19,12 @@ public class Peca {
    // getters e setters
    public void setEmJogo(boolean emJogo) {
       if(this.emJogo)
-          this.emJogo = emJogo;
+         this.emJogo = emJogo;
       // se a peça ja tiver saído do jogo, ela não pode voltar.
       else
-          // se "emJogo" for false, e o atributo passado for true
-          if(emJogo)
-              System.out.println("Peça capturada não pode voltar para o jogo. ");
+         // se "emJogo" for false, e o atributo passado for true
+         if(emJogo)
+            System.out.println("Peça capturada não pode voltar para o jogo. ");
    }
 
    public boolean getEmJogo() {
@@ -33,6 +33,10 @@ public class Peca {
  
    public String getCor() {
       return cor;
+   }
+
+   public boolean getDama() {
+      return dama;
    }
 
    // métodos abstrastos, sobreposto por cada especialização da classe.
@@ -51,11 +55,11 @@ public class Peca {
       if(!dama) {
 
          // peca da cor branco que nao é dama
-         if((movimentosVerticais == 1 && movimentosHorizontais == 1) || (movimentosVerticais == 2 && movimentosHorizontais == 2))
+         if(((movimentosVerticais == 1 && movimentosHorizontais == 1) || (movimentosVerticais == 2 && movimentosHorizontais == 2)) && cor == "Branco")
             return true;
 
          // peca da cor preto que não é dama
-         if((movimentosVerticais == -1 && movimentosHorizontais == 1) || (movimentosVerticais == -2 && movimentosHorizontais == 2))
+         if(((movimentosVerticais == -1 && movimentosHorizontais == 1) || (movimentosVerticais == -2 && movimentosHorizontais == 2)) && cor == "Preto")
             return true;
 
       // se a peca for dama
@@ -95,9 +99,9 @@ public class Peca {
    
    /* Retorna um caracter correspondente a peça, considerando sua cor. */
    public char desenho() {
-      if(getCor() == "branco")
-         return 'b';
+      if(getCor() == "Branco")
+         return 'B';
       else
-         return 'p';
+         return 'P';
    }
 }
