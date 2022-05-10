@@ -39,6 +39,12 @@ public class Peca {
       return dama;
    }
 
+   // só atribui verdadeiro a dama quando ela for falso, nunca o contrário
+   public void setDama(boolean dama) {
+      if(!this.dama && dama == true)
+         this.dama = dama;
+   }
+
    // métodos abstrastos, sobreposto por cada especialização da classe.
 
    /* Retorna true caso for uma jogada válida para a peça, e false caso contrário, considerando apenas as regras do jogo e não a disposição das peças no tabuleiro */
@@ -97,11 +103,15 @@ public class Peca {
       return false;
    } 
    
-   /* Retorna um caracter correspondente a peça, considerando sua cor. */
+   /* Retorna um caracter correspondente a peça, considerando sua cor e se é uma dama ou não. */
    public char desenho() {
-      if(getCor() == "Branco")
+      if(getCor() == "Branco" && getDama())
          return 'B';
-      else
+      else if(getCor() == "Branco" && !getDama())
+         return 'b';
+      else if(getCor() == "Preto" && getDama())
          return 'P';
+      else
+         return 'p';
    }
 }

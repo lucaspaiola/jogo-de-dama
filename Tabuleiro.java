@@ -160,6 +160,24 @@ public void realizarUmaJogada(int linhaOrigem, char colunaOrigem, int linhaDesti
    posicao(linhaDestino, colunaDestino).setPeca(posicao(linhaOrigem, colunaOrigem).getPeca());
    posicao(linhaOrigem, colunaOrigem).setPeca(null);
 
+   // por ultimo, chama o metodo que verifica se a peca agora eh uma dama
+   verificaMudancaParaDama(linhaOrigem, colunaOrigem, linhaDestino, colunaDestino);
+
+}
+
+/* Método chamado após a realização da jogada, verifica se a peca chegou até a última casa adversária, em caso positivo, transforma aquela peça em uma Dama */
+private void verificaMudancaParaDama(int linhaOrigem, char colunaOrigem, int linhaDestino, char colunaDestino) {
+
+   // peca branca
+   if(posicao(linhaDestino, colunaDestino).getPeca().getCor() == "Branco")
+      if(linhaDestino == 8)
+         posicao(linhaDestino, colunaDestino).getPeca().setDama(true);
+
+   // peca preta
+   if(posicao(linhaDestino, colunaDestino).getPeca().getCor() == "Preto")
+      if(linhaDestino == 1)
+         posicao(linhaDestino, colunaDestino).getPeca().setDama(true);
+
 }
 
 /* Método que identifica qual peça está na origem e verifica se o caminho que a peça vai fazer até
@@ -222,6 +240,7 @@ private boolean verificaCaminhoPeca(int linhaOrigem, char colunaOrigem, int linh
    // peca branca se movimentando na diagonal a esq para captura
    if(linhaDestino - linhaOrigem == 2 && colunaDestino - colunaOrigem == -2) {
       if(posicaoOcupada(linhaOrigem + 1, (char) (colunaOrigem - 1)) && corDaPecaNaPosicao(linhaOrigem + 1, (char) (colunaOrigem - 1)) == "Preto") {
+         posicao(linhaOrigem + 1, (char) (colunaOrigem - 1)).getPeca().setEmJogo(false);
          posicao(linhaOrigem + 1, (char) (colunaOrigem - 1)).setPeca(null);
          return true;
       }
@@ -230,6 +249,7 @@ private boolean verificaCaminhoPeca(int linhaOrigem, char colunaOrigem, int linh
    // peca branca se movimentando na diagonal a dir para captura
    if(linhaDestino - linhaOrigem == 2 && colunaDestino - colunaOrigem == 2) {
       if(posicaoOcupada(linhaOrigem + 1, (char) (colunaOrigem + 1)) && corDaPecaNaPosicao(linhaOrigem + 1, (char) (colunaOrigem + 1)) == "Preto") {
+         posicao(linhaOrigem + 1, (char) (colunaOrigem + 1)).getPeca().setEmJogo(false);
          posicao(linhaOrigem + 1, (char) (colunaOrigem + 1)).setPeca(null);
          return true;
       }
@@ -238,6 +258,7 @@ private boolean verificaCaminhoPeca(int linhaOrigem, char colunaOrigem, int linh
    // peca preta se movimentando na diagonal a esq para captura
    if(linhaDestino - linhaOrigem == -2 && colunaDestino - colunaOrigem == -2) {
       if(posicaoOcupada(linhaOrigem - 1, (char) (colunaOrigem - 1)) && corDaPecaNaPosicao(linhaOrigem - 1, (char) (colunaOrigem - 1)) == "Branco") {
+         posicao(linhaOrigem - 1, (char) (colunaOrigem - 1)).getPeca().setEmJogo(false);
          posicao(linhaOrigem - 1, (char) (colunaOrigem - 1)).setPeca(null);
          return true;
       }
@@ -246,6 +267,7 @@ private boolean verificaCaminhoPeca(int linhaOrigem, char colunaOrigem, int linh
    // peca preta se movimentando na diagonal a dir para captura
    if(linhaDestino - linhaOrigem == -2 && colunaDestino - colunaOrigem == 2) {
       if(posicaoOcupada(linhaOrigem - 1, (char) (colunaOrigem + 1)) && corDaPecaNaPosicao(linhaOrigem - 1, (char) (colunaOrigem + 1)) == "Branco") {
+         posicao(linhaOrigem - 1, (char) (colunaOrigem + 1)).getPeca().setEmJogo(false);
          posicao(linhaOrigem - 1, (char) (colunaOrigem + 1)).setPeca(null);
          return true;
       }
@@ -263,19 +285,36 @@ private boolean verificaCaminhoDama(int linhaOrigem, char colunaOrigem, int linh
    int movimentos_verticais = linhaDestino - linhaOrigem;
    int movimentos_horizontais = colunaDestino - colunaOrigem;
 
+   int adversariosEncontrados = 0;
+   Posicao posicaoAdversario = null;
+
+   // se a posicao de destino estiver ocupada, a dama nao pode realizar seu movimento
+   if(posicaoOcupada(linhaDestino, colunaDestino))
+      return false;
+
    //Movimento vertical para cima da dama.
    if(movimentos_verticais > 0 && movimentos_horizontais == 0) {
       // laço que percorre o caminho da dama no tabuleiro
-      for (int i = linhaOrigem; i <= linhaDestino - 1; i++) {
-         // se estiver na ultima posicao e a peca no destino estiver ocupada e for do adversario
-         if(i == linhaDestino - 1) {
-               if(tab[i][colunaDestino - 97].getPosicaoOcupada() && corDaPecaNaPosicao(linhaOrigem, colunaOrigem) != tab[i][colunaDestino - 97].getPeca().getCor())
-                  return true;
+      for (int i = linhaOrigem + 1; i <= linhaDestino - 1; i++) {
+         // se tiver uma peca da mesma cor no caminho
+         if(posicaoOcupada(i, colunaOrigem) && posicao(i, colunaOrigem).getPeca().getCor() == posicao(linhaOrigem, colunaOrigem).getPeca().getCor())
+            return false;
+
+         // encontra e incrementa a quantidade de pecas adversarias no caminho, alem de salvar a posicao do adversario para uma possivel captura
+         if(posicaoOcupada(i, colunaOrigem) && posicao(i, colunaOrigem).getPeca().getCor() != posicao(linhaOrigem, colunaOrigem).getPeca().getCor()) {
+            posicaoAdversario = posicao(i, colunaOrigem);
+            adversariosEncontrados++;
          }
 
-         // se a peça estiver tentando "passar por cima" de uma outra peça antes de chegar ao destino
-         if(tab[i][colunaOrigem - 97].getPosicaoOcupada())
-               return false;
+         // caso em que ha mais de um adversario no caminho da dama
+         if(adversariosEncontrados > 1)
+            return false;
+         
+      }
+      // retira a peca capturada de jogo, caso haja alguma, e retorna true
+      if(posicaoAdversario != null) {
+         posicaoAdversario.getPeca().setEmJogo(false);
+         posicaoAdversario.setPeca(null);
       }
       return true;
    }
@@ -283,16 +322,26 @@ private boolean verificaCaminhoDama(int linhaOrigem, char colunaOrigem, int linh
    //Movimento vertical para baixo da dama.
    if(movimentos_verticais < 0 && movimentos_horizontais == 0) {
       // laço que percorre o caminho da dama no tabuleiro
-      for (int i = linhaOrigem - 2; i >= linhaDestino - 1; i--) {
-         // se estiver na ultima posicao e a peca no destino estiver ocupada e for do adversario
-         if(i == linhaDestino - 1) {
-               if(tab[i][colunaDestino - 97].getPosicaoOcupada() && corDaPecaNaPosicao(linhaOrigem, colunaOrigem) != tab[i][colunaOrigem - 97].getPeca().getCor())
-                  return true;
+      for (int i = linhaOrigem - 1; i >= linhaDestino + 1; i--) {
+         // se tiver uma peca da mesma cor no caminho
+         if(posicaoOcupada(i, colunaOrigem) && posicao(i, colunaOrigem).getPeca().getCor() == posicao(linhaOrigem, colunaOrigem).getPeca().getCor())
+            return false;
+
+         // encontra e incrementa a quantidade de pecas adversarias no caminho
+         if(posicaoOcupada(i, colunaOrigem) && posicao(i, colunaOrigem).getPeca().getCor() != posicao(linhaOrigem, colunaOrigem).getPeca().getCor()) {
+            posicaoAdversario = posicao(i, colunaOrigem);
+            adversariosEncontrados++;
          }
 
-         // se a peça estiver tentando "passar por cima" de uma outra peça antes de chegar ao destino
-         if(tab[i][colunaOrigem - 97].getPosicaoOcupada())
-               return false;
+         // caso em que ha mais de um adversario no caminho da dama
+         if(adversariosEncontrados > 1)
+            return false;
+         
+      }
+      // retira a peca capturada de jogo e retorna true
+      if(posicaoAdversario != null) {
+         posicaoAdversario.getPeca().setEmJogo(false);
+         posicaoAdversario.setPeca(null);
       }
       return true;
    }
@@ -300,16 +349,26 @@ private boolean verificaCaminhoDama(int linhaOrigem, char colunaOrigem, int linh
    //Movimento horizontal para direita da dama.
    if(movimentos_horizontais > 0 && movimentos_verticais == 0) {
       // laço que percorre o caminho da dama no tabuleiro
-      for (int i = colunaOrigem - 96; i <= colunaDestino - 97; i++) {
-         // se estiver na ultima posicao e a peca no destino estiver ocupada e for do adversario
-         if(i == colunaDestino - 97) {
-               if(tab[linhaOrigem - 1][i].getPosicaoOcupada() && tab[linhaOrigem - 1][i].getPeca().getCor() != corDaPecaNaPosicao(linhaOrigem, colunaOrigem))
-                  return true;
+      for (int j = colunaOrigem + 1; j <= colunaDestino - 1; j++) {
+         // se tiver uma peca da mesma cor no caminho
+         if(posicaoOcupada(linhaOrigem, (char) j) && posicao(linhaOrigem, (char) j).getPeca().getCor() == posicao(linhaOrigem, colunaOrigem).getPeca().getCor())
+            return false;
+
+         // encontra e incrementa a quantidade de pecas adversarias no caminho
+         if(posicaoOcupada(linhaOrigem, (char) j) && posicao(linhaOrigem, (char) j).getPeca().getCor() != posicao(linhaOrigem, colunaOrigem).getPeca().getCor()) {
+            posicaoAdversario = posicao(linhaOrigem, (char) j);
+            adversariosEncontrados++;
          }
 
-         // se a peça estiver tentando "passar por cima" de uma outra peça antes de chegar ao destino
-         if(tab[linhaOrigem - 1][i].getPosicaoOcupada())
-               return false;
+         // caso em que ha mais de um adversario no caminho da dama
+         if(adversariosEncontrados > 1)
+            return false;
+         
+      }
+      // retira a peca capturada de jogo e retorna true
+      if(posicaoAdversario != null) {
+         posicaoAdversario.getPeca().setEmJogo(false);
+         posicaoAdversario.setPeca(null);
       }
       return true;
    }
@@ -317,35 +376,56 @@ private boolean verificaCaminhoDama(int linhaOrigem, char colunaOrigem, int linh
    //Movimento horizontal para esquerda da dama.
    if(movimentos_horizontais < 0 && movimentos_verticais == 0) {
       // laço que percorre o caminho da dama no tabuleiro
-      for (int i = colunaOrigem - 98; i >= colunaDestino - 97; i--) {
-         // se estiver na ultima posicao e a peca no destino estiver ocupada e for do adversario
-         if(i == colunaDestino - 97) {
-               if(tab[linhaOrigem - 1][i].getPosicaoOcupada() && tab[linhaOrigem - 1][i].getPeca().getCor() != corDaPecaNaPosicao(linhaOrigem, colunaOrigem))
-                  return true;
+      for (int j = colunaOrigem - 1; j >= colunaDestino + 1; j--) {
+         // se tiver uma peca da mesma cor no caminho
+         if(posicaoOcupada(linhaOrigem, (char) j) && posicao(linhaOrigem, (char) j).getPeca().getCor() == posicao(linhaOrigem, colunaOrigem).getPeca().getCor())
+            return false;
+
+         // encontra e incrementa a quantidade de pecas adversarias no caminho
+         if(posicaoOcupada(linhaOrigem, (char) j) && posicao(linhaOrigem, (char) j).getPeca().getCor() != posicao(linhaOrigem, colunaOrigem).getPeca().getCor()) {
+            posicaoAdversario = posicao(linhaOrigem, (char) j);
+            adversariosEncontrados++;
          }
 
-         // se a peça estiver tentando "passar por cima" de uma outra peça antes de chegar ao destino
-         if(tab[linhaOrigem - 1][i].getPosicaoOcupada())
-               return false;
+         // caso em que ha mais de um adversario no caminho da dama
+         if(adversariosEncontrados > 1)
+            return false;
+         
+      }
+      // retira a peca capturada de jogo e retorna true
+      if(posicaoAdversario != null) {
+         posicaoAdversario.getPeca().setEmJogo(false);
+         posicaoAdversario.setPeca(null);
       }
       return true;
    }
 
    //Movimento diagonal da dama.
    if(Math.abs(movimentos_horizontais) == Math.abs(movimentos_verticais)) {
+
       // Diagonal para direita e para cima
       if(movimentos_verticais > 0 && movimentos_horizontais > 0) {
          // laço que percorre o caminho da dama no tabuleiro
-         for (int i = linhaOrigem, j = colunaOrigem - 96; i <= linhaDestino - 1; i++, j++) {
-               // se estiver na ultima posicao e a peca no destino estiver ocupada e for do adversario
-               if(i == linhaDestino - 1) {
-                  if(tab[i][j].getPosicaoOcupada() && corDaPecaNaPosicao(linhaOrigem, colunaOrigem) != tab[i][j].getPeca().getCor())
-                     return true;
-               }
+         for (int i = linhaOrigem + 1, j = colunaOrigem + 1; j <= colunaDestino - 1; j++, i++) {
+            // se tiver uma peca da mesma cor no caminho
+            if(posicaoOcupada(i, (char) j) && posicao(i, (char) j).getPeca().getCor() == posicao(linhaOrigem, colunaOrigem).getPeca().getCor())
+               return false;
 
-               // se a peça estiver tentando "passar por cima" de uma outra peça antes de chegar ao destino
-               if(tab[i][j].getPosicaoOcupada())
-                  return false;
+            // encontra e incrementa a quantidade de pecas adversarias no caminho
+            if(posicaoOcupada(i, (char) j) && posicao(i, (char) j).getPeca().getCor() != posicao(linhaOrigem, colunaOrigem).getPeca().getCor()) {
+               posicaoAdversario = posicao(i, (char) j);
+               adversariosEncontrados++;
+            }
+
+            // caso em que ha mais de um adversario no caminho da dama
+            if(adversariosEncontrados > 1)
+               return false;
+   
+         }
+         // retira a peca capturada de jogo e retorna true
+         if(posicaoAdversario != null) {
+            posicaoAdversario.getPeca().setEmJogo(false);
+            posicaoAdversario.setPeca(null);
          }
          return true;
       }
@@ -353,16 +433,26 @@ private boolean verificaCaminhoDama(int linhaOrigem, char colunaOrigem, int linh
       // Diagonal para direita e para baixo
       if(movimentos_verticais < 0 && movimentos_horizontais > 0) {
          // laço que percorre o caminho da dama no tabuleiro
-         for (int i = linhaOrigem - 2, j = colunaOrigem - 96; i >= linhaDestino - 1; i--, j++) {
-               // se estiver na ultima posicao e a peca no destino estiver ocupada e for do adversario
-               if(i == linhaDestino - 1) {
-                  if(tab[i][j].getPosicaoOcupada() && corDaPecaNaPosicao(linhaOrigem, colunaOrigem) != tab[i][j].getPeca().getCor())
-                     return true;
-               }
+         for (int i = linhaOrigem - 1, j = colunaOrigem + 1; j <= colunaDestino - 1; j++, i--) {
+            // se tiver uma peca da mesma cor no caminho
+            if(posicaoOcupada(i, (char) j) && posicao(i, (char) j).getPeca().getCor() == posicao(linhaOrigem, colunaOrigem).getPeca().getCor())
+               return false;
 
-               // se a peça estiver tentando "passar por cima" de uma outra peça antes de chegar ao destino
-               if(tab[i][j].getPosicaoOcupada())
-                  return false;
+            // encontra e incrementa a quantidade de pecas adversarias no caminho
+            if(posicaoOcupada(i, (char) j) && posicao(i, (char) j).getPeca().getCor() != posicao(linhaOrigem, colunaOrigem).getPeca().getCor()) {
+               posicaoAdversario = posicao(i, (char) j);
+               adversariosEncontrados++;
+            }
+
+            // caso em que ha mais de um adversario no caminho da dama
+            if(adversariosEncontrados > 1)
+               return false;
+   
+         }
+         // retira a peca capturada de jogo e retorna true
+         if(posicaoAdversario != null) {
+            posicaoAdversario.getPeca().setEmJogo(false);
+            posicaoAdversario.setPeca(null);
          }
          return true;
       }
@@ -370,16 +460,26 @@ private boolean verificaCaminhoDama(int linhaOrigem, char colunaOrigem, int linh
       // Diagonal para esquerda e para cima
       if(movimentos_verticais > 0 && movimentos_horizontais < 0) {
          // laço que percorre o caminho da dama no tabuleiro
-         for (int i = linhaOrigem, j = colunaOrigem - 98; i <= linhaDestino - 1; i++, j--) {
-               // se estiver na ultima posicao e a peca no destino estiver ocupada e for do adversario
-               if(i == linhaDestino - 1) {
-                  if(tab[i][j].getPosicaoOcupada() && corDaPecaNaPosicao(linhaOrigem, colunaOrigem) != tab[i][j].getPeca().getCor())
-                     return true;
-               }
+         for (int i = linhaOrigem + 1, j = colunaOrigem - 1; j >= colunaDestino + 1; j--, i++) {
+            // se tiver uma peca da mesma cor no caminho
+            if(posicaoOcupada(i, (char) j) && posicao(i, (char) j).getPeca().getCor() == posicao(linhaOrigem, colunaOrigem).getPeca().getCor())
+               return false;
 
-               // se a peça estiver tentando "passar por cima" de uma outra peça antes de chegar ao destino
-               if(tab[i][j].getPosicaoOcupada())
-                  return false;
+            // encontra e incrementa a quantidade de pecas adversarias no caminho
+            if(posicaoOcupada(i, (char) j) && posicao(i, (char) j).getPeca().getCor() != posicao(linhaOrigem, colunaOrigem).getPeca().getCor()) {
+               posicaoAdversario = posicao(i, (char) j);
+               adversariosEncontrados++;
+            }
+
+            // caso em que ha mais de um adversario no caminho da dama
+            if(adversariosEncontrados > 1)
+               return false;
+   
+         }
+         // retira a peca capturada de jogo e retorna true
+         if(posicaoAdversario != null) {
+            posicaoAdversario.getPeca().setEmJogo(false);
+            posicaoAdversario.setPeca(null);
          }
          return true;
       }
@@ -387,16 +487,27 @@ private boolean verificaCaminhoDama(int linhaOrigem, char colunaOrigem, int linh
       // Diagonal para esquerda e para baixo
       if(movimentos_verticais < 0 && movimentos_horizontais < 0) {
          // laço que percorre o caminho da dama no tabuleiro
-         for (int i = linhaOrigem - 2, j = colunaOrigem - 98; i >= linhaDestino - 1; i--, j--) {
-               // se estiver na ultima posicao e a peca no destino estiver ocupada e for do adversario
-               if(i == linhaDestino - 1) {
-                  if(tab[i][j].getPosicaoOcupada() && corDaPecaNaPosicao(linhaOrigem, colunaOrigem) != tab[i][j].getPeca().getCor())
-                     return true;
-               }
+         for (int i = linhaOrigem - 1, j = colunaOrigem - 1; j >= colunaDestino + 1; j--, i--) {
+            // se tiver uma peca da mesma cor no caminho
+            if(posicaoOcupada(i, (char) j) && posicao(i, (char) j).getPeca().getCor() == posicao(linhaOrigem, colunaOrigem).getPeca().getCor())
+               return false;
 
-               // se a peça estiver tentando "passar por cima" de uma outra peça antes de chegar ao destino
-               if(tab[i][j].getPosicaoOcupada())
-                  return false;
+            // encontra e incrementa a quantidade de pecas adversarias no caminho
+            if(posicaoOcupada(i, (char) j) && posicao(i, (char) j).getPeca().getCor() != posicao(linhaOrigem, colunaOrigem).getPeca().getCor()) {
+               posicaoAdversario = posicao(i, (char) j);
+               adversariosEncontrados++;
+            }
+
+            // caso em que ha mais de um adversario no caminho da dama
+            if(adversariosEncontrados > 1)
+               return false;
+   
+         }
+         
+         // retira a peca capturada de jogo e retorna true
+         if(posicaoAdversario != null) {
+            posicaoAdversario.getPeca().setEmJogo(false);
+            posicaoAdversario.setPeca(null);
          }
          return true;
       }
